@@ -99,7 +99,7 @@ const PastPeriodsCarousel = () => {
             </CarouselItem>
           ))}
           {isFetchingMore && (
-            <CarouselItem className="flex items-center justify-center p-4 pl-2 md:basis-1/3 md:pl-4 lg:basis-1/5">
+            <CarouselItem className="flex items-center justify-center p-4 pl-2 md:pl-4 lg:basis-1/3 xl:basis-1/5">
               <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
             </CarouselItem>
           )}

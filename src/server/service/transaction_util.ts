@@ -27,14 +27,14 @@ export async function findDuplicateTransactions(
   return duplicates;
 }
 
-export async function getDateOfOldestTransaction(ctx: { db: PrismaClient }): Promise<Date | null> {
+export async function getDateOfOldestTransaction(ctx: { db: PrismaClient }): Promise<Date> {
   const oldestTransaction = await ctx.db.transaction.findFirst({
     orderBy: {
       date: "asc",
     },
   });
 
-  return oldestTransaction?.date ?? null;
+  return oldestTransaction?.date ?? new Date();
 }
 
 export async function getSummaryOfPeriod(ctx: { db: PrismaClient }, from: Date, to: Date, periodMode: Mode, categoryId?: string, subcategoryId?: string): Promise<PeriodSummary> {

@@ -93,10 +93,10 @@ export const transactionRouter = createTRPCRouter({
         currentTo = nextPeriod.to;
       }
 
-      const dateOfLastTransaction = await getDateOfOldestTransaction(ctx) ?? new Date();
+      const dateOfLastTransaction = await getDateOfOldestTransaction(ctx);
 
       for (let i = 0; i < numberOfPeriods; i++) {
-        if (currentFrom < dateOfLastTransaction) {
+        if (currentTo < dateOfLastTransaction) {
           break;
         }
 

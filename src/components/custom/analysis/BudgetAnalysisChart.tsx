@@ -22,7 +22,7 @@ import {
   Rectangle,
 } from "recharts";
 import { type BarProps } from "recharts";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 interface ChartDisplayItem extends BudgetAnalysisItem {
@@ -88,14 +88,14 @@ const BudgetAnalysisChart = () => {
 
     const processedData: ChartDisplayItem[] = serverChartData.map(
       (item: BudgetAnalysisItem) => {
-        const goal = Number(item.goal) || 0;
+        const goal = item.goal;
         const spending = Number(item.spending) || 0;
         let percentageSpent = 0;
 
-        if (goal > 0) {
-          percentageSpent = Math.min((spending / goal) * 100, 200);
-        } else if (spending > 0) {
-          percentageSpent = 200;
+        if (goal !== 0) {
+          percentageSpent = (spending / goal) * 100;
+        } else {
+          percentageSpent = 100;
         }
 
         return {
@@ -139,112 +139,117 @@ const BudgetAnalysisChart = () => {
 
   return (
     <Card>
-      <h2 className="text-xl font-semibold">
+      <CardTitle className="text-xl font-semibold">
         Budget Analysis (Goal vs. Spending)
-      </h2>
-      {serverChartData && serverChartData.length > 0 && (
-        <Card className="mx-12 flex flex-row flex-wrap justify-around gap-12 px-12">
-          {serverChartData.map((item) => (
-            <div key={item.name} className="flex items-center gap-2">
-              <Input
-                type="checkbox"
-                id={`vis-toggle-${item.name.replace(/\s+/g, "-")}`}
-                className="h-4 w-4 rounded-2xl"
-                checked={visibleCategories[item.name] !== false}
-                onChange={() => {
-                  setVisibleCategories((prev) => ({
-                    ...prev,
-                    [item.name]: !prev[item.name],
-                  }));
-                }}
+      </CardTitle>
+      <CardContent className="flex">
+        {serverChartData && serverChartData.length > 0 && (
+          <Card className="grid grid-cols-2 gap-4 p-4">
+            {serverChartData.map((item) => (
+              <div key={item.name} className="flex min-w-40 items-center gap-2">
+                <Input
+                  type="checkbox"
+                  id={`vis-toggle-${item.name.replace(/\s+/g, "-")}`}
+                  className="h-4 w-4 rounded-2xl"
+                  checked={visibleCategories[item.name] !== false}
+                  onChange={() => {
+                    setVisibleCategories((prev) => ({
+                      ...prev,
+                      [item.name]: !prev[item.name],
+                    }));
+                  }}
+                />
+                <label
+                  htmlFor={`vis-toggle-${item.name.replace(/\s+/g, "-")}`}
+                  className="text-sm select-none"
+                >
+                  {item.name}
+                </label>
+              </div>
+            ))}
+          </Card>
+        )}
+
+        {chartData.length === 0 && !isLoadingChartData ? (
+          <p className="text-gray-500">
+            No data to display. Try selecting categories or a different period.
+          </p>
+        ) : (
+          <ChartContainer config={chartConfig} className="w-full">
+            <BarChart data={chartData}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="name"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                interval={0}
               />
-              <label
-                htmlFor={`vis-toggle-${item.name.replace(/\s+/g, "-")}`}
-                className="text-sm select-none"
-              >
-                {item.name}
-              </label>
-            </div>
-          ))}
-        </Card>
-      )}
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tickFormatter={(value) => `${Number(value).toFixed(0)}%`}
+                domain={([dataMin, dataMax]) => [
+                  dataMin,
+                  Math.min(dataMax + 20, 200),
+                ]}
+              />
+              <ReferenceLine
+                y={100}
+                stroke="var(--chart-5)"
+                strokeDasharray="3 3"
+                strokeWidth={2}
+              />
+              <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar
+                dataKey="percentageSpent"
+                fill="var(--chart-2)"
+                radius={[4, 4, 0, 0]}
+                name={chartConfig.percentageSpent.label}
+                activeBar={(props: BarProps) => {
+                  const { x, y, width, height } = props;
+                  const padding = 4;
 
-      {chartData.length === 0 && !isLoadingChartData ? (
-        <p className="text-gray-500">
-          No data to display. Try selecting categories or a different period.
-        </p>
-      ) : (
-        <ChartContainer config={chartConfig} className="w-full">
-          <BarChart data={chartData}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              interval={0}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              tickFormatter={(value) => `${Number(value).toFixed(0)}%`}
-              domain={[0, "dataMax + 10"]}
-            />
-            <ReferenceLine
-              y={100}
-              stroke="var(--chart-5)"
-              strokeDasharray="3 3"
-              strokeWidth={2}
-            />
-            <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Bar
-              dataKey="percentageSpent"
-              fill="var(--chart-2)"
-              radius={[4, 4, 0, 0]}
-              name={chartConfig.percentageSpent.label}
-              activeBar={(props: BarProps) => {
-                const { x, y, width, height } = props;
-                const padding = 4;
+                  if (
+                    typeof x !== "number" ||
+                    typeof y !== "number" ||
+                    typeof width !== "number" ||
+                    typeof height !== "number" ||
+                    width <= 0 ||
+                    height === undefined
+                  ) {
+                    return (
+                      <Rectangle
+                        x={0}
+                        y={0}
+                        width={0}
+                        height={0}
+                        fill="transparent"
+                      />
+                    );
+                  }
 
-                if (
-                  typeof x !== "number" ||
-                  typeof y !== "number" ||
-                  typeof width !== "number" ||
-                  typeof height !== "number" ||
-                  width <= 0 ||
-                  height === undefined
-                ) {
                   return (
                     <Rectangle
-                      x={0}
-                      y={0}
-                      width={0}
-                      height={0}
-                      fill="transparent"
+                      x={x - padding}
+                      y={y - padding}
+                      width={width + 2 * padding}
+                      height={height + 2 * padding}
+                      fill="var(--chart-3)"
+                      radius={6}
                     />
                   );
-                }
-
-                return (
-                  <Rectangle
-                    x={x - padding}
-                    y={y - padding}
-                    width={width + 2 * padding}
-                    height={height + 2 * padding}
-                    fill="var(--chart-3)"
-                    radius={6}
-                  />
-                );
-              }}
-            />
-          </BarChart>
-        </ChartContainer>
-      )}
+                }}
+              />
+            </BarChart>
+          </ChartContainer>
+        )}
+      </CardContent>
     </Card>
   );
 };

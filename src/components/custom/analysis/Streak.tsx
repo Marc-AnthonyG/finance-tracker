@@ -17,19 +17,16 @@ const Streak = () => {
 
   return (
     <Card className="w-full">
-      <CardHeader className="text-center">
+      <CardHeader className="flex flex-col items-center justify-around text-center md:flex-row">
         <CardTitle className="text-2xl">Streaks & Periods</CardTitle>
+        <h2
+          className={`text-2xl font-bold ${streakCount > 0 ? "text-orange-400" : "text-muted-foreground"}`}
+        >
+          🔥 {streakCount} {periodLabel}
+          {streakCount !== 1 ? "s" : ""} streak 🔥
+        </h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-8">
-        <div className="flex flex-col items-center justify-center gap-2">
-          <h2
-            className={`text-2xl font-bold ${streakCount > 0 ? "text-orange-400" : "text-muted-foreground"}`}
-          >
-            🔥 {streakCount} {periodLabel}
-            {streakCount !== 1 ? "s" : ""} streak 🔥
-          </h2>
-        </div>
-
         <PastPeriodsCarousel />
       </CardContent>
     </Card>
